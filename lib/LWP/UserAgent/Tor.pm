@@ -59,8 +59,7 @@ sub _start_tor_proc {
 sub rotate_ip {
     my ($self) = @_;
 
-    my $socket      = $self->{_tor_socket};
-
+    my $socket = $self->{_tor_socket};
     my $answer = q{};
 
     $socket->send("AUTHENTICATE\n");
