@@ -21,7 +21,6 @@ WriteMakefile(
         LWP::UserAgent       => 0,
         IO::Socket::Telnet   => 0,
         LWP::Protocol::socks => 0,
-        Net::EmptyPort       => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'LWP-UserAgent-Tor-*' },
