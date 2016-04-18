@@ -19,7 +19,7 @@ WriteMakefile(
     },
     PREREQ_PM => {
         LWP::UserAgent       => 0,
-        IO::Socket::Telnet   => 0,
+        IO::Socket::INET     => 0,
         LWP::Protocol::socks => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

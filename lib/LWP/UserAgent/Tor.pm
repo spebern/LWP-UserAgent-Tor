@@ -3,7 +3,7 @@ package LWP::UserAgent::Tor;
 use strict;
 use warnings;
 use Carp;
-use IO::Socket::Telnet;
+use IO::Socket::INET;
 use LWP::Protocol::socks;
 
 use parent 'LWP::UserAgent';
@@ -21,7 +21,7 @@ sub new {
 
     my $self = $class->SUPER::new(%args);
     $self->{_tor_pid}     = $tor_pid;
-    $self->{_tor_socket}  = IO::Socket::Telnet->new(
+    $self->{_tor_socket}  = IO::Socket::INET->new(
         PeerAddr => $tor_ip,
         PeerPort => $tor_control_port,
     );
