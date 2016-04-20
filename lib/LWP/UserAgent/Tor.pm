@@ -20,8 +20,8 @@ sub new {
     my $tor_cfg          = delete( $args{tor_cfg} );
 
     my $self = $class->SUPER::new(%args);
-    $self->{_tor_pid}     = _start_tor_proc($tor_ip, $tor_port, $tor_control_port, $tor_cfg);
-    $self->{_tor_socket}  = IO::Socket::INET->new(
+    $self->{_tor_pid}    = _start_tor_proc($tor_ip, $tor_port, $tor_control_port, $tor_cfg);
+    $self->{_tor_socket} = IO::Socket::INET->new(
         PeerAddr => $tor_ip,
         PeerPort => $tor_control_port,
     ) // croak 'could not connect to tor';
