@@ -1,10 +1,22 @@
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More;
 use Test::Exception;
 use LWP::UserAgent::Tor;
+use Net::EmptyPort qw(empty_port check_port);
+use File::Which qw(which);
 
-{ # default values
+
+if (which 'tor') {
+    plan tests => 10;
+}
+else {
+    plan skip_all => 'Need tor available for testing';
+}
+
+SKIP: { # default values
+    skip 'One or both ports used: 9050, 9051', 4 if check_port(9050) || check_port(9051);
+
     my $ua = LWP::UserAgent::Tor->new;
 
     isa_ok $ua, 'LWP::UserAgent::Tor', 'Created object (default args)';
@@ -24,9 +36,12 @@ use LWP::UserAgent::Tor;
 }
 
 {
+    my $empty_port_1 = empty_port();
+    my $empty_port_2 = empty_port($empty_port_1 + 1);
+
     my $ua = LWP::UserAgent::Tor->new(
-        tor_control_port => 9050,
-        tor_port         => 9051,
+        tor_control_port => $empty_port_1,
+        tor_port         => $empty_port_2,
         tor_ip           => 'localhost',
         tor_cfg          => 't/torrc',
     );
