@@ -65,8 +65,8 @@ SKIP: { # default values
 # exceptions
 throws_ok {
     LWP::UserAgent::Tor->new(
-        tor_control_port => 9050,
-        tor_port         => 9050,
+        tor_control_port => 0,
+        tor_port         => 0,
     );
 } qr/could not connect to tor/, 'Die if socket cannot connect to tor';
 
