@@ -1,15 +1,17 @@
 package LWP::UserAgent::Tor;
 
+use 5.010;
 use strict;
 use warnings;
 no warnings 'exec';
 use Carp;
+use LWP::UserAgent;
 use IO::Socket::INET;
 use LWP::Protocol::socks;
 
-use parent 'LWP::UserAgent';
+use base 'LWP::UserAgent';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub new {
     my ($class, %args) = @_;
