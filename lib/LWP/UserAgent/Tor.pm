@@ -8,17 +8,18 @@ use Carp;
 use LWP::UserAgent;
 use IO::Socket::INET;
 use LWP::Protocol::socks;
+use Net::EmptyPort qw(empty_port);
 
 use base 'LWP::UserAgent';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub new {
     my ($class, %args) = @_;
 
-    my $tor_control_port = delete( $args{tor_control_port} ) // 9051;
-    my $tor_port         = delete( $args{tor_port} )         // 9050;
-    my $tor_ip           = delete( $args{tor_ip} )           // '127.0.0.1';
+    my $tor_control_port = delete( $args{tor_control_port} ) // empty_port();
+    my $tor_port         = delete( $args{tor_port} )         // empty_port($tor_control_port);
+    my $tor_ip           = delete( $args{tor_ip} )           // 'localhost';
     my $tor_cfg          = delete( $args{tor_cfg} );
 
     my $self = $class->SUPER::new(%args);
@@ -103,8 +104,8 @@ version 0.01
   use LWP::UserAgent::Tor;
 
   my $ua = LWP::UserAgent::Tor->new(
-      tor_control_port => 9051,            # 9051 on default
-      tor_port         => 9050,            # 9050 on default
+      tor_control_port => 9051,            # empty port on default range(49152 .. 65535)
+      tor_port         => 9050,            # empty port on default range(49152 .. 65535)
       tor_ip           => '127.0.0.1',     # localhost on default
       tor_config       => 'path/to/torrc', # tor default config path
   );
