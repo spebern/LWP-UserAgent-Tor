@@ -2,4 +2,6 @@ Revision history for LWP-UserAgent-Tor
 
 0.01    Date/time
         First version, released on an unsuspecting world.
-
+0.04    Data/time
+        - made default ports more flexible
+        - use Proc::Background for tor proccess

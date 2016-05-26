@@ -92,19 +92,15 @@ sub rotate_ip {
 __END__
 
 =pod
- 
+
 =encoding UTF-8
- 
+
 =head1 NAME
 
 LWP::UserAgent::Tor - rotate your ips
 
-=head1 VERSION
-
-version 0.01
-
 =head1 SYNOPSIS
- 
+
   use LWP::UserAgent::Tor;
 
   my $ua = LWP::UserAgent::Tor->new(
@@ -149,4 +145,3 @@ This is released under the Artistic License.
 spebern <bernhard@specht.net>
 
 =cut
-
