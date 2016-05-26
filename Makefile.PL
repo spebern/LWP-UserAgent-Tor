@@ -24,6 +24,7 @@ WriteMakefile(
         'Test::Exception'      => 0,
         'Net::EmptyPort'       => 0,
         'File::Which'          => 0,
+        'Proc::Background'     => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'LWP-UserAgent-Tor-*' },

@@ -6,12 +6,11 @@ use LWP::UserAgent::Tor;
 use Net::EmptyPort qw(empty_port check_port);
 use File::Which qw(which);
 
-
 if (which 'tor') {
     plan tests => 10;
 }
 else {
-    plan skip_all => 'Need tor available for testing';
+    plan skip_all => 'need tor available for testing';
 }
 
 SKIP: { # default values
@@ -19,11 +18,11 @@ SKIP: { # default values
 
     my $ua = LWP::UserAgent::Tor->new;
 
-    isa_ok $ua, 'LWP::UserAgent::Tor', 'Created object (default args)';
+    isa_ok $ua, 'LWP::UserAgent::Tor', 'created object (default args)';
 
-    like $ua->{_tor_pid}, qr/\d*[1-9]/, 'Started tor proc (default args)';
+    isa_ok $ua->{_tor_proc}, 'Proc::Background', 'started tor proc (default args)';
 
-    isa_ok $ua->{_tor_socket}, 'IO::Socket::INET', 'Connected to tor (default args)';
+    isa_ok $ua->{_tor_socket}, 'IO::Socket::INET', 'connected to tor (default args)';
 
     # 5 tries
     my $suc = 0;
@@ -46,20 +45,20 @@ SKIP: { # default values
         tor_cfg          => 't/torrc',
     );
 
-    isa_ok $ua, 'LWP::UserAgent::Tor', 'Created object';
+    isa_ok $ua, 'LWP::UserAgent::Tor', 'created object';
 
-    like $ua->{_tor_pid}, qr/\d*[1-9]/, 'Started tor proc';
+    isa_ok $ua->{_tor_proc}, 'Proc::Background', 'started tor proc (default args)';
 
-    isa_ok $ua->{_tor_socket}, 'IO::Socket::INET', 'Connected to tor';
+    isa_ok $ua->{_tor_socket}, 'IO::Socket::INET', 'connected to tor';
 
     # 5 tries
     my $suc = 0;
-    for (0 .. 4) {
+    for (1 .. 4) {
         $suc = $ua->rotate_ip;
         last if $suc;
     }
 
-    ok $suc, 'Chaned ip';
+    ok $suc, 'changed ip';
 }
 
 # exceptions
@@ -68,7 +67,7 @@ throws_ok {
         tor_control_port => 0,
         tor_port         => 0,
     );
-} qr/could not connect to tor/, 'Die if socket cannot connect to tor';
+} qr/error running tor/, 'die if socket cannot connect to tor';
 
 throws_ok {
     LWP::UserAgent::Tor->new(
@@ -76,5 +75,5 @@ throws_ok {
         tor_port         => 9050,
         tor_cfg          => 'not_existing',
     );
-} qr/tor config file does not exist/, "Die if tor cfg doesn't exist";
+} qr/tor config file does not exist/, "die if tor cfg doesn't exist";
 

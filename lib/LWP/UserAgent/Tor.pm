@@ -3,27 +3,31 @@ package LWP::UserAgent::Tor;
 use 5.010;
 use strict;
 use warnings;
-no warnings 'exec';
 use Carp;
 use LWP::UserAgent;
 use IO::Socket::INET;
 use LWP::Protocol::socks;
 use Net::EmptyPort qw(empty_port);
+use Proc::Background;
 
 use base 'LWP::UserAgent';
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub new {
     my ($class, %args) = @_;
 
     my $tor_control_port = delete( $args{tor_control_port} ) // empty_port();
-    my $tor_port         = delete( $args{tor_port} )         // empty_port($tor_control_port);
-    my $tor_ip           = delete( $args{tor_ip} )           // 'localhost';
-    my $tor_cfg          = delete( $args{tor_cfg} );
+    my $tor_port         = delete( $args{tor_port} )         // do {
+        my $port;
+        while (($port = empty_port()) == $tor_control_port){};
+        $port;
+    };
+    my $tor_ip   = delete( $args{tor_ip}  ) // 'localhost';
+    my $tor_cfg  = delete( $args{tor_cfg} );
 
     my $self = $class->SUPER::new(%args);
-    $self->{_tor_pid}    = _start_tor_proc($tor_ip, $tor_port, $tor_control_port, $tor_cfg);
+    $self->{_tor_proc}    = _start_tor_proc($tor_ip, $tor_port, $tor_control_port, $tor_cfg);
     $self->{_tor_socket} = IO::Socket::INET->new(
         PeerAddr => $tor_ip,
         PeerPort => $tor_control_port,
@@ -37,8 +41,8 @@ sub new {
 sub DESTROY {
     my ($self) = @_;
 
-    my $tor_pid = $self->{_tor_pid};
-    kill 9, $tor_pid if defined $tor_pid;
+    my $tor_proc = $self->{_tor_proc};
+    $tor_proc->die if defined $tor_proc;
     $self->SUPER::DESTROY if $self->can('SUPER::DESTROY');
 
     return;
@@ -53,16 +57,16 @@ sub _start_tor_proc {
         $tor_cmd .= " -f $cfg";
     }
 
-    my $pid = fork() // die "fork() failed: $!";
-    if ($pid == 0) {
-        exec $tor_cmd;
-        croak 'error running tor (probably not installed?)';
-    }
+    my $tor_proc = Proc::Background->new($tor_cmd);
 
     # starting tor...
     sleep 1;
 
-    return $pid;
+    if (!$tor_proc->alive) {
+        croak "error running tor (probably not installed?). Run tor manually to get a hint.";
+    }
+
+    return $tor_proc;
 }
 
 
