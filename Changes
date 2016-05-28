@@ -5,3 +5,6 @@ Revision history for LWP-UserAgent-Tor
 0.04    Data/time
         - made default ports more flexible
         - use Proc::Background for tor proccess
+0.05    Data/time
+        - let module work with a Tor binary that was included in a Tor Browser distribution
+        

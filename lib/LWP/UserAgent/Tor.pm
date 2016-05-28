@@ -5,6 +5,8 @@ use strict;
 use warnings;
 use Carp;
 use LWP::UserAgent;
+use File::MMagic;
+use File::Which qw(which);
 use IO::Socket::INET;
 use LWP::Protocol::socks;
 use Net::EmptyPort qw(empty_port);
@@ -12,7 +14,7 @@ use Proc::Background;
 
 use base 'LWP::UserAgent';
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 sub new {
     my ($class, %args) = @_;
@@ -51,7 +53,43 @@ sub DESTROY {
 sub _start_tor_proc {
     my ($ip, $port, $control_port, $cfg) = @_;
 
-    my $tor_cmd = "tor --ControlListenaddress $ip:$control_port --ControlPort auto --SocksPort $port --quiet";
+    # There must be a Tor binary in $PATH; it might be named "tor.real".
+    my $tor = which 'tor';
+    defined $tor or croak 'could not find tor binary in $PATH';
+    my $tor_real = which 'tor.real';
+
+    my $mm = File::MMagic->new;
+    my $file_format = $mm->checktype_filename($tor);
+
+    my $binary_format = 'application/octet-stream';
+
+    if ($file_format eq $binary_format) {
+        # tor is a binary; do nothing.
+    }
+    elsif ($file_format =~ m/sh script text$/ && defined $tor_real) {
+        # tor is a shell script; it could be from a Tor Browser distribution.
+        $file_format = $mm->checktype_filename($tor_real);
+        if ($file_format eq $binary_format) {
+            # tor.real is the corresponding Tor binary.
+            $tor = $tor_real;
+        }
+        elsif ($file_format =~ m|^x-system/x-error; |) {
+            $file_format =~ s|^x-system/x-error; ||;
+            croak 'tor.real file format error detected: "' . $file_format . '"';
+        }
+        else {
+            croak 'could not find matching tor binary for tor shell script';
+        }
+    }
+    elsif ($file_format =~ m|^x-system/x-error; |) {
+        $file_format =~ s|^x-system/x-error; ||;
+        croak 'tor file format error detected: "' . $file_format . '"';
+    }
+    else {
+        croak 'could not work with tor file format "' . $file_format . '"';
+    }
+
+    my $tor_cmd = "$tor --ControlListenaddress $ip:$control_port --ControlPort auto --SocksPort $port --quiet";
     if (defined $cfg){
         croak 'tor config file does not exist' unless -e $cfg;
         $tor_cmd .= " -f $cfg";
@@ -63,7 +101,7 @@ sub _start_tor_proc {
     sleep 1;
 
     if (!$tor_proc->alive) {
-        croak "error running tor (probably not installed?). Run tor manually to get a hint.";
+        croak "error running tor. Run tor manually to get a hint.";
     }
 
     return $tor_proc;
