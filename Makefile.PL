@@ -29,4 +29,10 @@ WriteMakefile(
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'LWP-UserAgent-Tor-*' },
+    META_MERGE        => {
+        x_contributors => [
+            'Bernhard Specht <bernhard@specht.net>',
+            'Chris',
+        ],
+    },
 );
