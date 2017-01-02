@@ -152,7 +152,6 @@ LWP::UserAgent::Tor - rotate your ips
   my $ua = LWP::UserAgent::Tor->new(
       tor_control_port => 9051,            # empty port on default range(49152 .. 65535)
       tor_port         => 9050,            # empty port on default range(49152 .. 65535)
-      tor_ip           => '127.0.0.1',     # localhost on default
       tor_config       => 'path/to/torrc', # tor default config path
   );
 
@@ -160,7 +159,7 @@ LWP::UserAgent::Tor - rotate your ips
       say 'got another ip';
   }
   else {
-      say 'Try again?';
+      say 'try again?';
   }
 
 =head1 DESCRIPTION
