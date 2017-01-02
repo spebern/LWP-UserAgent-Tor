@@ -41,7 +41,6 @@ SKIP: { # default values
     my $ua = LWP::UserAgent::Tor->new(
         tor_control_port => $empty_port_1,
         tor_port         => $empty_port_2,
-        tor_ip           => 'localhost',
         tor_cfg          => 't/torrc',
     );
 
@@ -64,7 +63,7 @@ SKIP: { # default values
 # exceptions
 throws_ok {
     LWP::UserAgent::Tor->new(
-        tor_control_port => 0,
+        tor_control_port => -1,
         tor_port         => 0,
     );
 } qr/error running tor/, 'die if socket cannot connect to tor';
@@ -76,4 +75,3 @@ throws_ok {
         tor_cfg          => 'not_existing',
     );
 } qr/tor config file does not exist/, "die if tor cfg doesn't exist";
-

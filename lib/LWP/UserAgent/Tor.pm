@@ -11,10 +11,13 @@ use IO::Socket::INET;
 use LWP::Protocol::socks;
 use Net::EmptyPort qw(empty_port);
 use Proc::Background;
+use Path::Tiny;
 
 use base 'LWP::UserAgent';
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
+
+my $_tor_data_dir = Path::Tiny->tempdir;
 
 sub new {
     my ($class, %args) = @_;
@@ -25,17 +28,16 @@ sub new {
         while (($port = empty_port()) == $tor_control_port){};
         $port;
     };
-    my $tor_ip   = delete( $args{tor_ip}  ) // 'localhost';
     my $tor_cfg  = delete( $args{tor_cfg} );
 
     my $self = $class->SUPER::new(%args);
-    $self->{_tor_proc}    = _start_tor_proc($tor_ip, $tor_port, $tor_control_port, $tor_cfg);
+    $self->{_tor_proc}   = _start_tor_proc($tor_port, $tor_control_port, $tor_cfg);
     $self->{_tor_socket} = IO::Socket::INET->new(
-        PeerAddr => $tor_ip,
+        PeerAddr => '127.0.0.1',
         PeerPort => $tor_control_port,
     ) // croak 'could not connect to tor';
 
-    $self->proxy( [ 'http', 'https' ], "socks://$tor_ip:$tor_port" );
+    $self->proxy( [ 'http', 'https' ], "socks://localhost:$tor_port" );
 
     return bless $self, $class;
 }
@@ -45,13 +47,14 @@ sub DESTROY {
 
     my $tor_proc = $self->{_tor_proc};
     $tor_proc->die if defined $tor_proc;
+    $_tor_data_dir->remove_tree;
     $self->SUPER::DESTROY if $self->can('SUPER::DESTROY');
 
     return;
 }
 
 sub _start_tor_proc {
-    my ($ip, $port, $control_port, $cfg) = @_;
+    my ($port, $control_port, $cfg) = @_;
 
     # There must be a Tor binary in $PATH; it might be named "tor.real".
     my $tor = which 'tor';
@@ -89,7 +92,12 @@ sub _start_tor_proc {
         croak 'could not work with tor file format "' . $file_format . '"';
     }
 
-    my $tor_cmd = "$tor --ControlListenaddress $ip:$control_port --ControlPort auto --SocksPort $port --quiet";
+    my $tor_cmd = "$tor " .
+        "--ControlPort $control_port " .
+        "--SocksPort $port " .
+        "--DataDirectory $_tor_data_dir " .
+        "--quiet ";
+
     if (defined $cfg){
         croak 'tor config file does not exist' unless -e $cfg;
         $tor_cmd .= " -f $cfg";
